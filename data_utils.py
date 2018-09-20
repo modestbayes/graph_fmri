@@ -2,7 +2,7 @@ import numpy as np
 from scipy.io import loadmat
 import os
 from sklearn.preprocessing import scale
-from numpy.fft import fft
+from numpy.fft import fft, rfft
 
 
 # time_series_dir = '/Users/linggeli/Downloads/time_series/cup/'
@@ -45,45 +45,61 @@ def preprocess_time_series(time_series_data):
     return time_series_data
 
 
-# TODO: how do the time series indices actually correspond to blocks
-def divide_time_series(time_series_data, start=10, length=70):
+def block_indices(behavioral_data, block_num):
     """
-    Divide entire time series into four blocks.
+    Find indices for a block based on behavioral data.
+    :param behavioral_data: (2d numpy array) behavioral data of format [trial, variable]
+    :param block_num: (int) from 1 to 4
+    :return: (int) start and end indices
+    """
+    block_time = behavioral_data[behavioral_data[:, 12] == block_num, 11] / 2
+    return int(block_time[0]), int(block_time[-1])
+
+
+def divide_time_series(time_series_data, behavioral_data):
+    """
+    Divide entire time series into four blocks based on behavioral data.
 
     :param time_series_data: (2d numpy array) time series data of format [channel, time]
-    :param start: (int) starting index of first block
-    :param length: (int) length of each block
+    :param behavioral_data: (2d numpy array) behavioral data of format [trial, variable]
     :return: (list) of time series blocks
     """
+    burn_in = 20
     time_series_blocks = []
     for i in range(4):
-        current = start + i * length
-        time_series_blocks.append(time_series_data[:, current:(current + length)])
+        start, end = block_indices(behavioral_data, i + 1)
+        if start < burn_in:
+            start = burn_in
+        time_series_blocks.append(time_series_data[:, start:end])
     return time_series_blocks
 
 
-# TODO: something more legit
-def summarize_time_series(time_series):
+def summarize_time_series(time_series, n_time=64, coef_idx=[1, 2]):
     """
-    Perform fourier transformation on time series and use the lowest frequency coefficient.
-
-    :param time_series: (3d numpy array) time series data of format [block, channel, time]
-    :return: (2d numpy array) channel-wise features of format [block, channel]
+    Perform fourier transformation on time series and take low frequency coefficients.
+    :param time_series: (2d numpy array) time series data of format [channel, time]
+    :param n_time: (int) number of time points in powers of 2
+    :param coef_idx: (list) of coefficient indices
+    :return: (2d numpy array) channel-wise features of format [channel, coef]
     """
-    fourier = fft(time_series)
-    return np.take(fourier.real, indices=1, axis=-1)
+    fourier_coef = rfft(time_series, n=n_time)
+    return np.absolute(fourier_coef)[:, coef_idx]
 
 
-def create_features(time_series_data, **kwargs):
+def create_features(time_series_data, behavioral_data, **kwargs):
     """
-    Wrapper function.
+    Wrapper function to create fourier features for all four blocks.
 
     :param time_series_data: (2d numpy array) time series data of format [channel, time]
-    :param kwargs: input parameters for divide_time_series
-    :return: (2d numpy array) channel-wise features of format [block, channel]
+    :param behavioral_data: (2d numpy array) behavioral data of format [trial, variable]
+    :return: (2d numpy array) channel-wise features of format [block, channel, coef]
     """
-    blocks = divide_time_series(time_series_data, **kwargs)
-    return summarize_time_series(np.stack(blocks))
+    blocks = divide_time_series(time_series_data, behavioral_data)
+    features = []
+    for block in blocks:
+        current = summarize_time_series(block, **kwargs)
+        features.append(current)
+    return np.stack(features)
 
 
 def load_behavioral(behavioral_dir, subject_id):
@@ -112,20 +128,21 @@ def create_labels(behavioral_data):
     return np.asarray(labels)
 
 
-def get_all_features(time_series_dir, subject_id_list, **kwargs):
+def get_all_features(time_series_dir, behavioral_dir, subject_id_list, **kwargs):
     """
     Wrapper function for time series data processing.
 
     :param time_series_dir: (string) path to time series data directory
+    :param behavioral_dir: (string) path to behavioral data directory
     :param subject_id_list: (list) of integer subject ids
-    :param kwargs: input parameters for divide_time_series
     :return: (2d numpy array) all subject block features [block, channels]
     """
     all_features = []
     for subject_id in subject_id_list:
         time_series_data = load_time_series(time_series_dir, subject_id)
+        behavioral_data = load_behavioral(behavioral_dir, subject_id)
         time_series_data = preprocess_time_series(time_series_data)
-        features = create_features(time_series_data, **kwargs)
+        features = create_features(time_series_data, behavioral_data, **kwargs)
         all_features.append(features)
     return np.concatenate(all_features)
 
