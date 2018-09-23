@@ -3,10 +3,13 @@ from scipy.io import loadmat
 import os
 from sklearn.preprocessing import scale
 from numpy.fft import fft, rfft
+from sklearn.linear_model import LinearRegression
 
 
 # time_series_dir = '/Users/linggeli/Downloads/time_series/cup/'
 # behavioral_dir = '/Users/linggeli/Downloads/fMRIbehav/cup/'
+BURN_IN = 20
+
 
 def get_subject_id(time_series_dir):
     """
@@ -33,16 +36,24 @@ def load_time_series(time_series_dir, subject_id):
     return time_series_data
 
 
-# TODO: remove trend and smooth time series
 def preprocess_time_series(time_series_data):
     """
-    Center and scale time series per channel.
+    Center and scale time series per channel then remove linear trend after burn-in.
 
     :param time_series_data: (2d numpy array) time series data of format [channel, time]
     :return: preprocessed time series
     """
     time_series_data = scale(time_series_data, axis=1)
-    return time_series_data
+    ts_no_trend = np.zeros(time_series_data.shape)
+    lm = LinearRegression()
+    for i in range(time_series_data.shape[0]):
+        y = time_series_data[i, BURN_IN:]
+        x = (np.arange(y.shape[0]) + 1).reshape(-1, 1)
+        lm = lm.fit(x, y)
+        y_hat = lm.predict(x)
+        res = y - y_hat
+        ts_no_trend[i, BURN_IN:] = res
+    return ts_no_trend
 
 
 def block_indices(behavioral_data, block_num):
@@ -64,12 +75,11 @@ def divide_time_series(time_series_data, behavioral_data):
     :param behavioral_data: (2d numpy array) behavioral data of format [trial, variable]
     :return: (list) of time series blocks
     """
-    burn_in = 20
     time_series_blocks = []
     for i in range(4):
         start, end = block_indices(behavioral_data, i + 1)
-        if start < burn_in:
-            start = burn_in
+        if start < BURN_IN:
+            start = BURN_IN
         time_series_blocks.append(time_series_data[:, start:end])
     return time_series_blocks
 
