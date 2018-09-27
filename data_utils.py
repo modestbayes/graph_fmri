@@ -1,9 +1,11 @@
 import numpy as np
 from scipy.io import loadmat
 import os
+import json
 from sklearn.preprocessing import scale
 from numpy.fft import fft, rfft
 from sklearn.linear_model import LinearRegression
+from tqdm import tqdm
 
 
 # time_series_dir = '/Users/linggeli/Downloads/time_series/cup/'
@@ -148,7 +150,7 @@ def get_all_features(time_series_dir, behavioral_dir, subject_id_list, **kwargs)
     :return: (2d numpy array) all subject block features [block, channels]
     """
     all_features = []
-    for subject_id in subject_id_list:
+    for subject_id in tqdm(subject_id_list):
         time_series_data = load_time_series(time_series_dir, subject_id)
         behavioral_data = load_behavioral(behavioral_dir, subject_id)
         time_series_data = preprocess_time_series(time_series_data)
@@ -171,3 +173,19 @@ def get_all_labels(behavioral_dir, subject_id_list):
         labels = create_labels(behavioral_data)
         all_labels.append(labels)
     return np.concatenate(all_labels)
+
+
+def save_model_details(details, directory):
+    """
+    Save model details in a json file and creates a unique id.
+
+    :param details: (dict) model details {'model': 'graph_cnn', 'epochs': 50} (must be non-nested)
+    :param directory: (string) directory path
+    :return: (int) unique model id
+    """
+    model_id = hash(frozenset(details.items()))
+    js = json.dumps(details)
+    path = os.path.join(directory, 'model_details_{}.json'.format(model_id))
+    with open(path, 'w') as f:
+        f.write(js)
+    return model_id
