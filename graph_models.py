@@ -34,7 +34,7 @@ class multi_cgcnn(cgcnn):
         :return: (tensorflow) fully-connected layer of a single graph
         """
         # Graph convolutional layers.
-        x = tf.expand_dims(x, 2)  # N x M x F=1
+        x = tf.expand_dims(x, 2)
         for i in range(len(self.p)):
             with tf.variable_scope('graph{}_'.format(j) + 'conv{}'.format(i + 1)):  # variable scope keeping
                 with tf.name_scope('filter'):
