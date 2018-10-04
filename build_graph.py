@@ -10,7 +10,7 @@ def spatial_distance_graph(adj_matrix_path, pct):
 
     :param adj_matrix_path: (string) path to already calculated csv file
     :param pct: (float) percentage between 0 and 100 to make the graph sparse
-    :return: (2d numpy array) of size [100, 100] for graph adjacency matrix
+    :return: (2d numpy array) of size [100, 100] graph adjacency matrix
     """
     adj_matrix = np.genfromtxt(adj_matrix_path, delimiter=',')
     adj_matrix[np.isnan(adj_matrix)] = 0
@@ -26,7 +26,7 @@ def random_graph(random_seed, pct):
 
     :param random_seed: (int) seed for randomness
     :param pct: (float) percentage between 0 and 100 to make the graph sparse
-    :return: (2d numpy array) of size [100, 100] for graph adjacency matrix
+    :return: (2d numpy array) of size [100, 100] graph adjacency matrix
     """
     np.random.seed(random_seed)
     A_random = np.random.uniform(low=0, high=1, size=(100, 100))
@@ -43,7 +43,7 @@ def pearson_correlation_graph(time_series_dir, pct):
 
     :param time_series_dir: (string) directory of time series
     :param pct: (float) percentage between 0 and 100 to make the graph sparse
-    :return: (2d numpy array) of size [100, 100] for graph adjacency matrix
+    :return: (2d numpy array) of size [100, 100] graph adjacency matrix
     """
     subject_id_list = get_subject_id(time_series_dir)
     n = len(subject_id_list)
@@ -60,3 +60,19 @@ def pearson_correlation_graph(time_series_dir, pct):
     A_pearson = mean_pearson
     A_pearson[A_pearson < thres] = 0
     return A_pearson
+
+
+def mask_graph(A_matrix, pct):
+    """
+    Mask a percentage of edges on a graph with zeros.
+
+    :param A_matrix: (2d numpy array) of size [100, 100] for graph adjacency matrix
+    :param pct: (float) percentage between 0 and 100 to remove edges
+    :return: (2d numpy array) of size [100, 100] for graph adjacency matrix with zero masks
+    """
+    edges = A_matrix[(A_matrix < 1) & (A_matrix > 0)].flatten()
+    thres = np.percentile(edges, 100 - pct)
+    select = (A_matrix < 1) & (A_matrix > thres)
+    A_matrix_mask = A_matrix
+    A_matrix_mask[select] = 0
+    return A_matrix_mask

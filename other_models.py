@@ -5,8 +5,6 @@ from keras.layers import Dense, Dropout
 from keras import Model
 from keras.layers import Conv2D, MaxPooling2D, Input, Flatten, AveragePooling2D
 from keras.callbacks import ModelCheckpoint
-from keras.models import load_model
-from sklearn.metrics import roc_curve, auc
 
 
 def logistic_model(train_val_data, verbose=False):

@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.io import loadmat
 import os
-import json
 from sklearn.preprocessing import scale
 from numpy.fft import fft, rfft
 from sklearn.linear_model import LinearRegression
@@ -173,19 +172,3 @@ def get_all_labels(behavioral_dir, subject_id_list):
         labels = create_labels(behavioral_data)
         all_labels.append(labels)
     return np.concatenate(all_labels)
-
-
-def save_model_details(details, directory):
-    """
-    Save model details in a json file and creates a unique id.
-
-    :param details: (dict) model details {'model': 'graph_cnn', 'epochs': 50} (must be non-nested)
-    :param directory: (string) directory path
-    :return: (int) unique model id
-    """
-    model_id = hash(frozenset(details.items()))
-    js = json.dumps(details)
-    path = os.path.join(directory, 'model_details_{}.json'.format(model_id))
-    with open(path, 'w') as f:
-        f.write(js)
-    return model_id
