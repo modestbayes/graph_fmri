@@ -7,9 +7,7 @@ from sklearn.linear_model import LinearRegression
 from tqdm import tqdm
 
 
-# time_series_dir = '/Users/linggeli/Downloads/time_series/cup/'
-# behavioral_dir = '/Users/linggeli/Downloads/fMRIbehav/cup/'
-BURN_IN = 20
+BURN_IN = 21
 
 
 def get_subject_id(time_series_dir):
@@ -172,46 +170,3 @@ def get_all_labels(behavioral_dir, subject_id_list):
         labels = create_labels(behavioral_data)
         all_labels.append(labels)
     return np.concatenate(all_labels)
-
-
-def get_subject_id_new(new_data_dir):
-    """
-    Get a list of subject ids based on new data file names.
-    """
-    new_data_files = os.listdir(new_data_dir)
-    subject_id_list = [int(x[3:7]) for x in new_data_files if x[-3:] == 'csv']
-    return subject_id_list
-
-
-def load_time_series_new(new_data_dir, subject_id):
-    """
-    Load new data matrix per subject.
-    """
-    subject_data = np.genfromtxt(os.path.join(new_data_dir, 'SUB{}_cup_preproc.csv'.format(subject_id)), delimiter=',')
-    time_series_data = np.zeros((375, 290))
-    for i in range(375):
-        select = subject_data[:, 0] == i
-        current_time_series = subject_data[select, 1]
-        n_time = current_time_series.shape[0]
-        if 0 < n_time < 270:
-            time_series_data[i, 20:(20 + n_time)] = current_time_series
-        elif n_time > 270:
-            time_series_data[i, 20:] = current_time_series[:270]
-        else:
-            continue
-    time_series_data[np.isnan(time_series_data)] = 0
-    return time_series_data
-
-
-def get_all_features_new(new_data_dir, behavioral_dir, subject_id_list, **kwargs):
-    """
-    Wrapper function for new data processing.
-    """
-    all_features = []
-    for subject_id in tqdm(subject_id_list):
-        time_series_data = load_time_series_new(new_data_dir, subject_id)
-        behavioral_data = load_behavioral(behavioral_dir, 2001)  # TODO: all behavioral data are assumed to be the same
-        time_series_data = preprocess_time_series(time_series_data)
-        features = create_features(time_series_data, behavioral_data, **kwargs)
-        all_features.append(features)
-    return np.concatenate(all_features)

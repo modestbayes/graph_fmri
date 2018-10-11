@@ -1,10 +1,8 @@
 import tensorflow as tf
 import os
 import sys
-module_path = os.path.abspath(os.path.join('..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-from lib.models import *
+sys.path.append('/Users/linggeli/graph_fmri/')
+from graph_fmri.cnn_graph.models import *
 
 
 class multi_cgcnn(cgcnn):

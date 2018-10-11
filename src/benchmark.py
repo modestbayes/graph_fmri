@@ -38,24 +38,24 @@ def fully_connected_model(train_val_data, layers, drop_prob, verbose=False):
     if verbose:
         model.summary()
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    checkpointer = ModelCheckpoint('/Users/linggeli/cnn_graph/fmri/temp_model.h5',
+    checkpointer = ModelCheckpoint('/Users/linggeli/graph_fmri/models/temp_model.h5',
                                    verbose=0, save_best_only=True, save_weights_only=True)
     hist = model.fit(X_train_vec, y_train, batch_size=100, epochs=20, verbose=0,
                      validation_data=(X_val_vec, y_val), callbacks=[checkpointer])
-    model.load_weights('/Users/linggeli/cnn_graph/fmri/temp_model.h5')
+    model.load_weights('/Users/linggeli/graph_fmri/models/temp_model.h5')
     y_hat = model.predict(X_val_vec)[:, 0] > 0.5
     acc = np.mean(y_val == y_hat)
     return acc
 
 
-def convolutional_model(train_val_data, n_feature, n_filter, dense_size, drop_prob, verbose=False):
+def convolutional_model(train_val_data, n_filter, filter_size, dense_size, drop_prob, verbose=False):
     """
     Convolutional neural network with input images.
     """
     X_train_image, y_train, X_val_image, y_val = train_val_data
-    input_image = Input(shape=(100, n_feature, 1))
-    x = Conv2D(n_filter, (5, 5), padding='same', activation='relu')(input_image)
-    x = AveragePooling2D((5, 5))(x)
+    input_image = Input(shape=(X_train_image.shape[1], X_train_image.shape[2], 1))
+    x = Conv2D(n_filter, (filter_size, filter_size), padding='same', activation='relu')(input_image)
+    x = AveragePooling2D((4, 4))(x)
     x = Flatten()(x)
     x = Dense(dense_size, activation='relu')(x)
     x = Dropout(drop_prob)(x)
@@ -64,11 +64,11 @@ def convolutional_model(train_val_data, n_feature, n_filter, dense_size, drop_pr
     if verbose:
         conv_model.summary()
     conv_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    checkpointer = ModelCheckpoint('/Users/linggeli/cnn_graph/fmri/temp_model.h5',
+    checkpointer = ModelCheckpoint('/Users/linggeli/graph_fmri/models/temp_model.h5',
                                    verbose=0, save_best_only=True, save_weights_only=True)
     hist = conv_model.fit(X_train_image, y_train, batch_size=100, epochs=20, verbose=0,
                           validation_data=(X_val_image, y_val), callbacks=[checkpointer])
-    conv_model.load_weights('/Users/linggeli/cnn_graph/fmri/temp_model.h5')
+    conv_model.load_weights('/Users/linggeli/graph_fmri/models/temp_model.h5')
     y_hat = conv_model.predict(X_val_image)[:, 0] > 0.5
     acc = np.mean(y_val == y_hat)
     return acc

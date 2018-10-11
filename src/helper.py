@@ -5,10 +5,11 @@ import os
 import sys
 from sklearn import preprocessing
 from scipy import sparse
-from ..lib import models, graph, coarsening
+sys.path.append('/Users/linggeli/graph_fmri/')
+from graph_fmri.cnn_graph import models, graph, coarsening
 
 
-def prepare_data(X, y, split, data_format, random_seed):
+def prepare_data(X, y, split, data_format=None, random_seed=0):
     """
     Helper function for data preparation.
     """
@@ -119,7 +120,7 @@ def save_details(details, directory):
     details_list = list(flatten_list(details.values()))
     hash_id = hash(frozenset(details_list)) % ((sys.maxsize + 1) * 2)
     js = json.dumps(details)
-    path = os.path.join(directory, 'model_details_{}.json'.format(model_id))
+    path = os.path.join(directory, 'details_{}.json'.format(hash_id))
     with open(path, 'w') as f:
         f.write(js)
     return hash_id
