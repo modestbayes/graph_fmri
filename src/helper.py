@@ -61,15 +61,19 @@ def structure_data(A_matrix, X_train, X_val):
     return L, X_train_graph, X_val_graph
 
 
-def graph_model_params(n_filter, dense_size, n_graph, num_epochs, batch_size, n_train):
+def graph_model_params(n_filter, dense_size, n_graph, keep_prob,
+                       epochs, batch_size, n_train, verbose=False):
     """
     Parameters of graph CNN.
     """
     params = dict()
     params['dir_name'] = 'demo'
-    params['num_epochs'] = num_epochs
+    params['num_epochs'] = epochs
     params['batch_size'] = batch_size
-    params['eval_frequency'] = n_train / batch_size
+    if verbose:
+        params['eval_frequency'] = n_train / batch_size
+    else:
+        params['eval_frequency'] = epochs * n_train / batch_size
 
     # Building blocks.
     params['filter'] = 'chebyshev5'
@@ -82,12 +86,12 @@ def graph_model_params(n_filter, dense_size, n_graph, num_epochs, batch_size, n_
     # Architecture.
     params['F'] = [n_filter, n_filter]  # Number of graph convolutional filters.
     params['K'] = [10, 10]  # Polynomial orders.
-    params['p'] = [4, 2]  # Pooling sizes.
+    params['p'] = [2, 4]  # Pooling sizes.
     params['M'] = [dense_size, C]  # Output dimensionality of fully connected layers.
 
     # Optimization.
     params['regularization'] = 5e-4
-    params['dropout'] = 0.9
+    params['dropout'] = keep_prob
     params['learning_rate'] = 1e-3
     params['decay_rate'] = 0.95
     params['momentum'] = 0.9

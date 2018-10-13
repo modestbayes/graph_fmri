@@ -1,6 +1,2 @@
-model_checkpoint_path: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1812"
-all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1500"
-all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1600"
-all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1700"
-all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1800"
-all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-1812"
+model_checkpoint_path: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-725"
+all_model_checkpoint_paths: "/Users/linggeli/graph_fmri/graph_fmri/cnn_graph/../checkpoints/demo/model-725"

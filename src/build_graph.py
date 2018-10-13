@@ -1,7 +1,9 @@
 import numpy as np
 from scipy.stats import pearsonr
 from tqdm import tqdm
-from data_utils import *
+import sys
+sys.path.append('/Users/linggeli/graph_fmri/')
+from graph_fmri.src.data_utils import *
 
 
 def spatial_distance_graph(adj_matrix_path, brain_regions, pct):
@@ -21,7 +23,7 @@ def spatial_distance_graph(adj_matrix_path, brain_regions, pct):
     return A_spatial
 
 
-def random_graph(random_seed, n, pct):
+def random_graph(n, pct, random_seed=0):
     """
     Graph that is randomly generated.
 
@@ -87,7 +89,7 @@ def mask_connections(A_matrix, pct):
     edges = A_matrix[(A_matrix < 1) & (A_matrix > 0)].flatten()
     thres = np.percentile(edges, 100 - pct)
     select = (A_matrix < 1) & (A_matrix > thres)
-    A_matrix_mask = A_matrix
+    A_matrix_mask = A_matrix.copy()
     A_matrix_mask[select] = 0
     return A_matrix_mask
 
@@ -102,8 +104,9 @@ def cut_connections(A_matrix, p_values, k):
     :return: (2d numpy array) graph adjacency matrix with cut connections
     """
     top_regions = p_values.argsort()[:k]
+    A_matrix_cut = A_matrix.copy()
     for r in top_regions:
-        A_matrix[r, :] = 0
-        A_matrix[:, r] = 0
-    np.fill_diagonal(A_matrix, 1)
-    return A_matrix
+        A_matrix_cut[r, :] = 0
+        A_matrix_cut[:, r] = 0
+    np.fill_diagonal(A_matrix_cut, 1)
+    return A_matrix_cut
